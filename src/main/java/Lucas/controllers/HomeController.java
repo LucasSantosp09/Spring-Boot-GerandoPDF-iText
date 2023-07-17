@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties.Template;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -75,5 +77,24 @@ public class HomeController {
 		HtmlConverter.convertToPdf(html, pdfStream);
 		
 		return pdfStream.toByteArray();
+	}
+	
+	@GetMapping(value = "/cursos/download", produces = MediaType.APPLICATION_PDF_VALUE)
+	@ResponseBody
+	public ResponseEntity<?> baixarPdfTemplateThymeleaf() {
+		List<Curso> curso = new ArrayList<>();
+		curso.add(new Curso("Spring Framework - Fundamentos", "Cleysson Lima", 10));
+		curso.add(new Curso("Spring Framework - Template Thymeleaf", "Cleysson Lima", 10));
+		curso.add(new Curso("Spring Framework - Data JPA", "Cleysson Lima", 10));
+		
+		Context context = new Context();
+		context.setVariable("cursos", curso);
+		
+		String html  =  templateEngine.process("cursos.html", context);
+		
+		ByteArrayOutputStream pdfStream = new ByteArrayOutputStream();
+		HtmlConverter.convertToPdf(html, pdfStream);
+		
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cursos.pdf").body(pdfStream.toByteArray());
 	}
 }
